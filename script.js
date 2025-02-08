@@ -223,24 +223,36 @@ function renderPrograms(programs) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Create and append filter widget
-    const filterWidget = document.createElement('div');
-    filterWidget.className = 'filter-widget d-md-none';
-    filterWidget.innerHTML = '<i class="bi bi-funnel"></i>';
-    document.body.appendChild(filterWidget);
+    // Create search section wrapper
+    const searchSection = document.createElement('div');
+    searchSection.className = 'search-section';
+    
+    // Move search input into the wrapper
+    const searchInput = document.querySelector('.search-input');
+    const searchInputParent = searchInput.parentElement;
+    searchSection.appendChild(searchInput);
+    
+    // Create filter toggle button for mobile
+    const filterToggle = document.createElement('button');
+    filterToggle.className = 'filter-toggle d-md-none';
+    filterToggle.innerHTML = '<i class="bi bi-funnel"></i> Filters';
+    searchSection.appendChild(filterToggle);
+    
+    // Replace the original search container with the new wrapper
+    searchInputParent.appendChild(searchSection);
 
     // Add close button to filters container
     const filtersContainer = document.querySelector('.filters-container');
     const filtersHeader = document.createElement('div');
     filtersHeader.className = 'filters-header d-md-none';
     filtersHeader.innerHTML = `
-        <h2>Filters</h2>
-        <button class="close-filters">×</button>
+        <h3>Filters</h3>
+        <button class="close-filters" aria-label="Close filters">×</button>
     `;
     filtersContainer.insertBefore(filtersHeader, filtersContainer.firstChild);
 
     // Toggle filters
-    filterWidget.addEventListener('click', function() {
+    filterToggle.addEventListener('click', function() {
         filtersContainer.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
@@ -251,21 +263,26 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
     });
 
-    // Handle filter section toggles
-    const filterButtons = document.querySelectorAll('.filter-button');
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const content = document.getElementById(this.dataset.section + 'Content');
-            const icon = this.querySelector('.bi');
-            
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                icon.classList.add('rotate-180');
-            } else {
-                content.style.display = 'none';
-                icon.classList.remove('rotate-180');
-            }
-        });
+    // Close filters when clicking outside
+    document.addEventListener('click', function(event) {
+        if (filtersContainer.classList.contains('active') && 
+            !filtersContainer.contains(event.target) && 
+            !filterToggle.contains(event.target)) {
+            filtersContainer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Prevent closing when clicking inside filters
+    filtersContainer.addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 450 && filtersContainer.classList.contains('active')) {
+            filtersContainer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     });
 });
-
